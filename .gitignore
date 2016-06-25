@@ -1,0 +1,6 @@
+*.txt
+DONE/
+*.pyc
+*.db
+test/
+*.original

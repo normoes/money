@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+   <head>
+     <link href="/static/css/style.css" rel="stylesheet">
+     <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+     <script type="text/javascript">
+        var exp_values = [];
+        var cash_values = [];
+       $(document).ready(function() {
+
+         $("#cash").click(function(e) {
+           cash_values = [];
+           $.get("/cash", function(data, status){
+             var items = [];
+             $('<div>', {
+               html: data.items
+             }).appendTo('body');
+             //console.log(data);
+             //console.log(JSON.parse(data));
+             //console.log(data.items);
+
+             $.each( JSON.parse(data), function( index, obj ) {
+               //console.log('index', index);
+               //console.log('obj', obj);
+               //console.log('value',obj.value);
+               //console.log('created',obj.created);
+               cash_values.push(obj.value);
+               items.push( "<li id='" + index + "'>" + obj.created+ ": " + obj.value + "</li>" );
+            });
+            sum= 0;
+            $.each(cash_values,function(){sum+=parseFloat(this) || 0;});
+            $("#result").html($("<p/>", {
+              html: "sum: " + sum
+            }));
+            $( "<ul/>", {
+              "class": "my-new-list",
+              html: items.join( "" )
+            }).appendTo( "#result" );
+
+           });
+            //.done(function(string) {
+            //   $("#the-string").show();
+            //   $("#the-string input").val(string);
+            //});
+           e.preventDefault();
+         });
+         $("#expenditures").click(function(e) {
+           exp_values = [];
+           $.get("/expenditures", function(data, status){
+             var items = [];
+             $('<div>', {
+               html: data.items
+             }).appendTo('body');
+             //console.log(data);
+             //console.log(JSON.parse(data));
+             //console.log(data.items);
+
+             $.each( JSON.parse(data), function( index, obj ) {
+               //console.log('index', index);
+               //console.log('obj', obj);
+               //console.log('value',obj.value);
+               //console.log('created',obj.created);
+               exp_values.push(obj.value);
+               items.push( "<li id='" + index + "'>" + obj.created+ ": " + obj.value + ": " + obj.category+ ": " + obj.description + "</li>" );
+            });
+
+
+            sum= 0;
+            $.each(exp_values,function(){sum+=parseFloat(this) || 0;});
+
+            $("#result").html($("<p/>", {
+              html: "sum: " + sum
+            }));
+
+            //$("<p/>", {
+            //  html: "sum: " + sum
+            //}).appendTo("body");
+            $( "<ul/>", {
+              "class": "my-new-list",
+              html: items.join( "" )
+            }).appendTo( "#result" );
+
+           });
+            //.done(function(string) {
+            //   $("#the-string").show();
+            //   $("#the-string input").val(string);
+            //});
+           e.preventDefault();
+         });
+
+         $("#sort").click(function(e) {
+           exp_values = [];
+           $.post("/expenditures", {"sql":$("input[name='sqlInput']").val()}) //{"length": $("input[name='length']").val()})
+            .done(function(data) {
+              var items = [];
+              $.each( JSON.parse(data), function( index, obj ) {
+                exp_values.push(obj.value);
+                items.push( "<li id='" + index + "'>" + obj.created+ ": " + obj.value + ": " + obj.category+ ": " + obj.description + "</li>" );
+             });
+
+             sum= 0;
+             $.each(exp_values,function(){sum+=parseFloat(this) || 0;});
+
+             $("#result").html($("<p/>", {
+               html: "sum: " + sum
+             }));
+             $( "<ul/>", {
+               "class": "my-new-list",
+               html: items.join( "" )
+             }).appendTo( "#result" );
+            });
+           e.preventDefault();
+         });
+
+
+         $("#sendCash").click(function(e) {
+           $.post("/generator", '') //{"length": $("input[name='length']").val()})
+            .done(function(string) {
+               $("#the-string").show();
+               $("#the-string input").val(string);
+            });
+           e.preventDefault();
+         });
+
+         $("#replace-string").click(function(e) {
+           $.ajax({
+              type: "PUT",
+              url: "/generator",
+              data: {"another_string": $("#the-string input").val()}
+           })
+           .done(function() {
+              alert("Replaced!");
+           });
+           e.preventDefault();
+         });
+
+         $("#delete-string").click(function(e) {
+           $.ajax({
+              type: "DELETE",
+              url: "/generator"
+           })
+           .done(function() {
+              $("#the-string").hide();
+           });
+           e.preventDefault();
+         });
+
+       });
+     </script>
+   </head>
+   <body>
+     <button id="cash">Give me cash</button>
+     <button id="expenditures">Give me my account</button>
+     <button id="sort">sort</button>
+     <input name="sqlInput" size="100" value="SELECT value,created,category, description FROM expenditures WHERE category='home' ORDER BY created DESC"/>
+
+     <div id="result"></div>
+
+   </body>
+</html>
