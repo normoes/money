@@ -26,13 +26,14 @@ def createTable(databaseName='',tableName='', debug = False):
     schema = ("CREATE TABLE "+ tableName +
               "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"                      
               "created DATE NOT NULL,"
-              "value REAL NOT NULL,"
-              "category TEXT,"
-              "description TEXT NOT NULL)")
+              "value REAL NOT NULL)")
+	      #,"
+              #"category TEXT,"
+              #"description TEXT NOT NULL)")
     
     database.createTable(schema)
         
 if __name__ == '__main__':
     databaseName = 'money.db'
-    tableName = 'rawmaterials'
+    tableName = 'cash_portugal'
     createTable(databaseName=databaseName,tableName=tableName, debug = True)

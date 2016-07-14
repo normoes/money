@@ -54,6 +54,14 @@ tKinter listbox
     self.listbox.get(ACTIVE)
     <<ListboxSelect>> for binding events to the selection of a item
 
+
+
+"""
+
+"""
+TODO:
+adapt view to deployment style
+
 """
 
 class simpleapp_tk(tk.Tk):
@@ -211,7 +219,7 @@ class simpleapp_tk(tk.Tk):
         self.controller.tableSelect(table=self.dbTables.cget('values')[self.dbTables.current()])
         #if self.dbTables.cget('values')[self.dbTables.current()] == 'expenditures':
         #    self.initialize_csv(csvFile=self.csvFileTARGO)
-        #elif self.dbTables.cget('values')[self.dbTables.current()] == 'cash':
+        #elif self.dbTables.cget('values')[self.dbTables.current()] == '':
         #    self.initialize_csv(csvFile=self.csvFileCASH)
         #self.controller.initialize_table()
 
@@ -259,7 +267,7 @@ class simpleapp_tk(tk.Tk):
             #print ddate
             value = checkValue(self.value_str.get())
             #print value
-            if self.dbTables.cget('values')[self.dbTables.current()] == 'cash':
+            if self.dbTables.cget('values')[self.dbTables.current()].lower().startswith('cash'):
                 args = [(ddate, value)]
                 print 'write row'
                 self.initialize_csv(self.csvFileCASH)

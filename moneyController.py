@@ -7,38 +7,39 @@ import datetime
 import fillFromFile as fromCSV
 
 class moneyController():
-    def __init__(self, view,  databaseName = '', debug=False):
+    def __init__(self, view,  databaseName = 'money.db', debug=False):
         self.view = view
-        self.db = None     
-        print __name__  
-        print __file__ 
+        self.db = None
+        print __name__
+        print __file__
         self.logger = logIt(path = os.path.dirname(os.path.abspath(databaseName)), filename='logger'+datetime.datetime.today().strftime('%Y_%m_%d')+'.txt', debug=True)
-        self.databaseName = databaseName 
-        self.initialize_db(self.databaseName)        
-        self.filechecker = filechecker.fileChecker(self.logger)  
-              
-    def initialize_table(self):        
-        print self.view.dbTables.current()
+        self.databaseName = databaseName
+        self.initialize_db(self.databaseName)
+        self.filechecker = filechecker.fileChecker(self.logger)
+
+    def initialize_table(self):
+        print 'selected combobox teblae index:', self.view.dbTables.current()
         #self.setTable(self.view.dbTables.cget('values')[self.view.dbTables.current()])
-        #self.db.setInsertColumns() 
+        #self.db.setInsertColumns()
         print 'TODOOO:', self.view.dbTables.cget('values')[self.view.dbTables.current()]
         self.db.initialize(self.view.dbTables.cget('values')[self.view.dbTables.current()])
-        
-        self.view.databasePath_str.set(os.path.basename(self.db.name)+' '+self.db.table) 
-            
-        self.populate()   
+
+        self.view.databasePath_str.set(os.path.basename(self.db.name)+' '+self.db.table)
+
+        self.populate()
         self.showEntries()
-        
-    def initialize_db(self, databaseName): 
-        if not len(databaseName) == 0:            
-            self.db = Database(name=databaseName, debug=True) 
+
+    def initialize_db(self, databaseName):
+        if not len(databaseName) == 0:
+            self.db = Database(name=databaseName, debug=True)
             self.populateTablesCombobox()
-            self.initialize_table()            
-                             
-    # initialize with data from file   
+            self.initialize_table()
+
+    # initialize with data from file
     def populate(self):
+        print '===POPULATE==='
         self.view.clearCategories()
-        if self.view.dbTables.cget('values')[self.view.dbTables.current()] == 'cash':
+        if self.view.dbTables.cget('values')[self.view.dbTables.current()].lower().startswith('cash'):
             self.view.addToCategories('only date and value possible')
         else:
             sql = 'SELECT distinct(category) FROM '+self.db.table+' ORDER BY category COLLATE NOCASE ASC'
@@ -48,20 +49,22 @@ class moneyController():
                 for row in rows:
                     self.view.addToCategories(row)
     def showEntries(self):
+        print '===SHOW ENTRIES==='
         self.view.clearEntries()
-        print 'table: ', self.db.fieldnames
-        sql = 'SELECT id, '+', '.join(self.db.fieldnames)+' FROM '+self.db.table+' ORDER BY id DESC LIMIT 100'
-        # +self.db.fieldnames[0] + 
+        print 'colums from selected table: ', self.db.fieldnames
+        sql = 'SELECT '+ self.db.getColumnsSQL() + ' FROM '+self.db.table+' ORDER BY id DESC LIMIT 100'
+        # +self.db.fieldnames[0] +
         self.db.query(sql)
         rows = self.db.fetchall()
         if rows:
             for row in rows:
-                print row
+                print 'added to listbox:', row
                 self.view.addToEntries(row)
 
     def populateTablesCombobox(self):
         self.view.dbTables['values'] = self.db.getAllTables()
-        print self.view.dbTables.cget('values')
+        print 'all the tables in the combobox:', self.view.dbTables.cget('values')
+        # init with firs table in list
         self.view.dbTables.set(self.view.dbTables.cget('values')[0])
     def getDbName(self):
         return os.path.basename(os.path.abspath(self.db.name))
@@ -77,7 +80,7 @@ class moneyController():
         elif table == 'cash':
             self.view.initialize_csv(csvFile=self.view.csvFileCASH)
         self.initialize_table()
-        
+
     def fillFromCSV(self, path):
         if self.filechecker.exists(path):
             print path, 'exists'
