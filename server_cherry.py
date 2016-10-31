@@ -8,6 +8,8 @@ import cherrypy
 import json
 
 from utils.database import Database
+from utils.dbConnect_deco import dbConnectAndClose
+from utils.ExceptionsDeco import printException
 
 
 
@@ -30,7 +32,7 @@ class MoneyWebService(object):
     @cherrypy.tools.accept(media='text/plain')
     def GET(self):
             with sqlite3.connect(DB_STRING) as c:
-                cherrypy.session['ts'] = time.time()
+                #cherrypy.session['ts'] = time.time()
                 r= c.execute("SELECT value, created, category, description FROM expenditures ORDER BY created DESC") #WHERE session_id=?", [cherrypy.session.id])
                 data = r.fetchall()
                 json_data = list()
@@ -69,28 +71,52 @@ class MoneyWebService(object):
 class CashWebService(object):
     exposed = True
 
+    def __init__(self, db):
+        self.db = db
+
+    @printException
+    @dbConnectAndClose
     @cherrypy.tools.accept(media='text/plain')
     def GET(self): # , *args, **kwargs):
+        #with sqlite3.connect(DB_STRING) as c:
+        ##cherrypy.session['ts'] = time.time()
+        print 'database name', self.db.name
+        #r= c.execute("SELECT value, created, category, description FROM cash ORDER BY created DESC") #WHERE session_id=?", [cherrypy.session.id])        
+        r= self.db.query('SELECT value, created, category, description FROM cash ORDER BY created DESC') #WHERE session_id=?", [cherrypy.session.id])        
+        data = r.fetchall()
+        print 'executed'
+        json_data = list()
+        for d  in data:
+            json_data.append({'value':d[0], 'created':d[1], 'category':d[2], 'description':d[3]})
+        return json.dumps(json_data)
+            #r = c.execute("SELECT value, created FROM cash ORDER BY id DESC")
+            #data = r.fetchall()
+            #print 'DATA', data
+            #json_data = list()
+            #for d  in data:
+            #    json_data.append({'value':d[0], 'created':d[1]})
+            #return json.dumps(json_data)
+    def POST(self, sql='SELECT value, created, category, description FROM cash ORDER BY created DESC'):
+        print 'sql', sql
         with sqlite3.connect(DB_STRING) as c:
             #cherrypy.session['ts'] = time.time()
-            r = c.execute("SELECT value, created FROM cash ORDER BY id DESC")
-            data = r.fetchall()
-            print 'DATA', data
-            json_data = list()
-            for d  in data:
-                json_data.append({'value':d[0], 'created':d[1]})
-            return json.dumps(json_data)
-
-    def POST(self, sql='SELECT value, created FROM cash ORDER BY id DESC'):
-        print sql
-        with sqlite3.connect(DB_STRING) as c:
-            cherrypy.session['ts'] = time.time()
-            r= c.execute(sql)
+            r = c.execute(sql)
             data = r.fetchall()
             json_data = list()
+            print 'data', data
             for d  in data:
-                json_data.append({'value':d[0], 'created':d[1]})
+                json_data.append({'value':d[0], 'created':d[1], 'category':d[2], 'description':d[3]})
             return json.dumps(json_data)
+    #def POST(self, sql='SELECT value, created FROM cash ORDER BY id DESC'):
+    #    print sql
+    #    with sqlite3.connect(DB_STRING) as c:
+    #        cherrypy.session['ts'] = time.time()
+    #        r= c.execute(sql)
+    #        data = r.fetchall()
+    #        json_data = list()
+    #        for d  in data:
+    #            json_data.append({'value':d[0], 'created':d[1]})
+    #        return json.dumps(json_data)
 
     def PUT(self, another_string):
         """
@@ -157,5 +183,5 @@ if __name__ == '__main__':
 
     webapp = Money()
     webapp.expenditures = MoneyWebService()
-    webapp.cash = CashWebService()
+    webapp.cash = CashWebService(db)
     cherrypy.quickstart(webapp, '/', conf)

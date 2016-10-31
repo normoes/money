@@ -1,4 +1,11 @@
 from utils.sqlite3_db import SQLlite_DB
+from utils.dbConnect_deco import dbConnectAndClose
+
+"""
+TODO (see TODO in moneyController.py)
+    connect then close db in every funtion
+        --> decorator
+"""
 
 class Database():
     def __init__(self, type='', name='', schema='', debug=False):
@@ -8,8 +15,15 @@ class Database():
         self.table = ''
         self.id = -1
 
+    def connect(self):
+        self.db.connect()
+    def close(self):
+        self.db.close()
+    def rollback(self):
+        self.db.rollback()
+
     def query(self, sql, args = None):
-        self.db.query(sql, args)
+        return self.db.query(sql, args)
 
     def insert(self, table, cols, args):
         if not table:
@@ -22,10 +36,7 @@ class Database():
         return self.db.fetchone()
 
     def fetchall(self):
-        return self.db.fetchall()
-
-    def close(self):
-        self.db.close()
+        return self.db.fetchall()    
 
     def createTable(self, schema):
         self.db.createTable(schema)
@@ -50,10 +61,9 @@ class Database():
     def setInsertColumns(self, table=''):
         if not table:
             table = self.table
-        print 'querying all table columns:'
+        print 'querying all table columns in', self.table
         self.fieldnames = self.db.getInsertColumns(table)
-        print 'columns from', self.table, '(without id column):', self.fieldnames
-
+        print 'columns from', self.table, '(without id column):', self.fieldnames    
     def initialize(self, table):
         self.table = table
         self.setInsertColumns()

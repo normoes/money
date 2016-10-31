@@ -15,17 +15,10 @@
              $('<div>', {
                html: data.items
              }).appendTo('body');
-             //console.log(data);
-             //console.log(JSON.parse(data));
-             //console.log(data.items);
 
              $.each( JSON.parse(data), function( index, obj ) {
-               //console.log('index', index);
-               //console.log('obj', obj);
-               //console.log('value',obj.value);
-               //console.log('created',obj.created);
                cash_values.push(obj.value);
-               items.push( "<li id='" + index + "'>" + obj.created+ ": " + obj.value + "</li>" );
+               items.push( "<li id='" + index + "'>" + obj.created+ ": " + obj.value + ": " + obj.category+ ": " + obj.description + "</li>" );
             });
             sum= 0;
             $.each(cash_values,function(){sum+=parseFloat(this) || 0;});

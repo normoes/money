@@ -268,21 +268,32 @@ class simpleapp_tk(tk.Tk):
             value = checkValue(self.value_str.get())
             #print value
             if self.dbTables.cget('values')[self.dbTables.current()].lower().startswith('cash'):
-                args = [(ddate, value)]
+                csvFile = self.csvFileCASH
+                """
+                category = self.category_str.get()
+                #print repr(category)
+                description = self.description_str.get()
+                #print description
+                args = [(ddate, value, category, description)]
+                #args = [(ddate, value)]
                 print 'write row'
                 self.initialize_csv(self.csvFileCASH)
                 if self.csv:
                     try:
-                        print self.csvFileTARGO
+                        print self.csvFileCASH
                         if self.controller.filechecker.isEmpty(self.csvFileCASH):
                             print 'writing header'
                             self.csv.writeheader()
-                        self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value})
+                        self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value, 'category':category, 'description': description})
+                        #self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value})
                         print 'row written'
                     finally:
                         if self.csv_handle:
                             self.csv_handle.close()
+                """
             else:
+                csvFile = self.csvFileTARGO
+                """
                 category = checkCategory(self.category_str.get())
                 #print repr(category)
                 description = checkDescription(self.description_str.get())
@@ -301,6 +312,25 @@ class simpleapp_tk(tk.Tk):
                     finally:
                         if self.csv_handle:
                             self.csv_handle.close()
+                """
+            category = checkCategory(self.category_str.get())
+            #print repr(category)
+            description = checkDescription(self.description_str.get())
+            #print description
+            args = [(ddate, value, category, description)]
+            print 'write row'
+            self.initialize_csv(csvFile)
+            if self.csv:
+                try:
+                    print csvFile
+                    if self.controller.filechecker.isEmpty(csvFile):
+                        print 'writing header'
+                        self.csv.writeheader()
+                    self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value, 'category':category, 'description': description})
+                    print 'row written'
+                finally:
+                    if self.csv_handle:
+                        self.csv_handle.close()
             self.controller.insertIntoDb(args)
 
         except AssertionError as e:
