@@ -148,7 +148,7 @@ class SQLlite_DB():
         return fieldnames
 
     @printException
-    def createTable(self, schema):        
+    def createTable(self, schema):     
         def getTableName(schema):
             schema = schema.strip()
             schemaParts = schema.upper().split()

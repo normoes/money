@@ -60,7 +60,9 @@ tKinter listbox
 
 """
 TODO:
-adapt view to deployment style
+ - adapt view to deployment style
+ - get money.db (current working directory) like done in mergePDF.py
+
 
 """
 
@@ -324,9 +326,14 @@ class simpleapp_tk(tk.Tk):
                 try:
                     print csvFile
                     if self.controller.filechecker.isEmpty(csvFile):
-                        print 'writing header'
+                        print 'writing header'                        
                         self.csv.writeheader()
-                    self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value, 'category':category, 'description': description})
+                    #print description
+                    print repr(description)
+                    #print description.decode('utf-8')
+                    print repr(description.encode('utf-8'))
+                    
+                    self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value, 'category':category, 'description': description.encode('utf-8')})
                     print 'row written'
                 finally:
                     if self.csv_handle:

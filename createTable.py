@@ -5,6 +5,9 @@ from utils.inputClient import getCsvReader, checkDate
 
 from utils.MoneyExceptions import *
 
+from utils.dbConnect_deco import dbConnectAndClose
+from utils.ExceptionsDeco import printException
+
 """
 functions in sqlite
     http://pythoncentral.io/advanced-sqlite-usage-in-python/
@@ -14,26 +17,37 @@ rollback any change since last commit
     db.rollback()
 
 """
-    
-def createTable(databaseName='',tableName='', debug = False):
+
+class DbController():
+
+  def __init__(self, databaseName='money.db', debug=False):
+    self.databaseName = databaseName
+    self.debug = debug
+    self.db = Database(name=databaseName, debug=debug)
+
+  @printException
+  @dbConnectAndClose
+  def createTable(self, tableName=''):
     if not tableName:
         print 'no table name given'
         raise NoTableNameGivenException
-    if not databaseName:
+    if not self.databaseName:
         print 'no database name given'
-        raise NoDatabaseNameGivenException
-    database = Database(name=databaseName, debug=debug)
+        raise NoDatabaseNameGivenException    
     schema = ("CREATE TABLE "+ tableName +
               "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"                      
               "created DATE NOT NULL,"
-              "value REAL NOT NULL)")
+              "value REAL NOT NULL," 
 	      #,"
-              #"category TEXT,"
-              #"description TEXT NOT NULL)")
-    
-    database.createTable(schema)
+              "category TEXT,"
+              "description TEXT NOT NULL)")
+    print schema
+
+    self.db.createTable(schema)
         
 if __name__ == '__main__':
-    databaseName = 'money.db'
-    tableName = 'cash_portugal'
-    createTable(databaseName=databaseName,tableName=tableName, debug = True)
+  dbCont = DbController(debug=True)
+  dbCont.createTable(tableName='rawmaterials_portugal')
+  #databaseName = 'money_test.db'
+  #tableName = 'anlagen_portugal'
+  #createTable(databaseName=databaseName,tableName=tableName, debug = True)
