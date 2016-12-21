@@ -146,6 +146,11 @@
      <button id="expenditures">Give me my account</button>
      <button id="sort">sort</button>
      <input name="sqlInput" size="100" value="SELECT value,created,category, description FROM expenditures WHERE category='home' ORDER BY created DESC"/>
+     
+     <input name="value_sum_ordered" size="100" value="select sum(value) as summedup, strftime('%Y',created) as year, strftime('%m', created) as month, category  from expenditures where value < 0 group by year, month, category order by year DESC, month DESC, created DESC"/>
+     
+     
+
 
      <div id="result"></div>
 
