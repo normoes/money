@@ -88,6 +88,10 @@ class simpleapp_tk(tk.Tk):
         self.csv, self.csv_handle = createCsv(filename=csvFile, fieldnames=self.controller.db.fieldnames)
 
     def initialize(self):
+
+        # self.bind("<Escape>", lambda x: self.destroy())
+        self.bind("<Escape>", self.onclose)
+
         listFrame0= Frame(self)
         listFrame0.pack(side=TOP,fill=BOTH,expand=True)
         listFrame= Frame(listFrame0)
@@ -98,7 +102,7 @@ class simpleapp_tk(tk.Tk):
         scrollbarx = Scrollbar(listFrame , orient=HORIZONTAL)
         scrollbarx.pack(side=BOTTOM, fill=X)
         ##bd --> border
-        self.listbox = Listbox(listFrame,bd=0, selectmode=SINGLE, yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+        self.listbox = Listbox(listFrame,bd=1, selectmode=SINGLE, yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
         self.listbox.bind('<<ListboxSelect>>',self.OnSelectClick)
         scrollbary.config(command=self.listbox.yview)
         scrollbarx.config(command=self.listbox.xview)
@@ -326,13 +330,13 @@ class simpleapp_tk(tk.Tk):
                 try:
                     print csvFile
                     if self.controller.filechecker.isEmpty(csvFile):
-                        print 'writing header'                        
+                        print 'writing header'
                         self.csv.writeheader()
                     #print description
                     print repr(description)
                     #print description.decode('utf-8')
                     print repr(description.encode('utf-8'))
-                    
+
                     self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value, 'category':category, 'description': description.encode('utf-8')})
                     print 'row written'
                 finally:
@@ -349,9 +353,10 @@ class simpleapp_tk(tk.Tk):
         except Exception as e:
             print 'unhandled exception:', e
 
-app = None
+    def onclose(self, event):
+        closeApp()
 
-def onclose():
+def closeApp():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         print 'cleaning empty files'
         print app.csvFileTARGO
@@ -365,13 +370,14 @@ def onclose():
         print 'closing application'
         app.destroy()
 
-if __name__ == "__main__":
-    app = simpleapp_tk(None, r"money.db")
-    app.title('money input')
+app = None
+# if __name__ == "__main__":
+app = simpleapp_tk(None, r"money.db")
+app.title('money input')
 
-    #app.wm_attributes('-topmost', 1) # always on top
-    app.protocol("WM_DELETE_WINDOW", onclose)
+#app.wm_attributes('-topmost', 1) # always on top
+app.protocol("WM_DELETE_WINDOW", closeApp)
 
-    app.mainloop()
+app.mainloop()
 
-    print 'everything closed'
+print 'everything closed'
