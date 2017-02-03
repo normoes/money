@@ -4,3 +4,5 @@ DONE/
 *.db
 test/
 *.original
+*.BAK
+*.db_
