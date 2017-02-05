@@ -2,7 +2,6 @@
 DONE/
 *.pyc
 *.db
-test/
 *.original
 *.BAK
 *.db_
