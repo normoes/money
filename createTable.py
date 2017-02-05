@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-1 -*-
+
 import os
 import datetime
 from utils.database import Database
@@ -33,18 +36,18 @@ class DbController():
         raise NoTableNameGivenException
     if not self.databaseName:
         print 'no database name given'
-        raise NoDatabaseNameGivenException    
+        raise NoDatabaseNameGivenException
     schema = ("CREATE TABLE "+ tableName +
-              "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"                      
+              "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
               "created DATE NOT NULL,"
-              "value REAL NOT NULL," 
+              "value REAL NOT NULL,"
 	      #,"
               "category TEXT,"
               "description TEXT NOT NULL)")
     print schema
 
     self.db.createTable(schema)
-        
+
 if __name__ == '__main__':
   dbCont = DbController(debug=True)
   dbCont.createTable(tableName='rawmaterials_portugal')

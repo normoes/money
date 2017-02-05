@@ -1,10 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-1 -*-
+
 from utils.database import Database
-import utils.fileChecker as filechecker
+import utils.file_checker as fc
 from utils.logIt import logIt
 
 import os
 import datetime
-import fillFromFile as fromCSV
+import fill_from_file as from_csv
 from utils.dbConnect_deco import dbConnectAndClose
 from utils.ExceptionsDeco import printException
 
@@ -32,7 +35,7 @@ class moneyController():
         self.logger = logIt(path = os.path.dirname(os.path.abspath(databaseName)), filename='logger'+datetime.datetime.today().strftime('%Y_%m_%d')+'.txt', debug=True)
         self.databaseName = databaseName
         self.initialize_db(self.databaseName)
-        self.filechecker = filechecker.fileChecker(self.logger)
+        self.filechecker = fc.fileChecker(self.logger)
     @printException
     @dbConnectAndClose
     def initialize_table(self):
@@ -101,8 +104,8 @@ class moneyController():
         self.initialize_table()
     @printException
     @dbConnectAndClose
-    def fillFromCSV(self, path):
+    def fill_from_csv(self, path):
         if self.filechecker.exists(path):
             print path, 'exists'
-            fromCSV.populate(path, self.db)
+            from_csv.populate(path, self.db)
             self.showEntries()

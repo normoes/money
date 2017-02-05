@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-1 -*-
+
 import os
 
 class fileChecker():
@@ -17,13 +20,13 @@ class fileChecker():
                 size = os.path.getsize(name)
             except OSError as e:
                 if self.logger:
-                    self.logger.log(e)            
+                    self.logger.log(e)
             if self.logger:
                 self.logger.log('size: ' + self.humansize(size))
-        return not(size > 0)  
+        return not(size > 0)
     def process(self, name):
         return self.exists(name) and not self.isEmpty(name)
-        
+
     def humansize(self, nbytes):
         if nbytes == 0: return '0 B'
         i = 0
@@ -31,9 +34,9 @@ class fileChecker():
             nbytes /= 1024.
             i += 1
         f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
-        return '%s %s' % (f, self.suffixes[i])          
-        
+        return '%s %s' % (f, self.suffixes[i])
+
 if __name__ == '__main__':
     print __package__
     print __name__
-    print __file__    
+    print __file__

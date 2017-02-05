@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
 try:
@@ -27,18 +27,14 @@ try:
     import tkFileDialog as filedialog
     import tkMessageBox as messagebox
 except ImportError:
-    raise ImportError, "The Tkinter module is required to run his program."
+    raise ImportError, "The Tkinter module is required to run this program."
 
 import os
 import datetime
-#from utils.database import Database
-from utils.inputClient import checkDate, checkValue, checkCategory, checkDescription, createCsv
-import utils.MoneyExceptions as MoneyExceptions
-#import utils.fileChecker as filechecker
+
+from utils.input_client import check_date, check_value, check_category, check_description, create_csv
 
 import moneyController as control
-
-#import FolderFile
 
 """
 do not use same name for shortName --> dictionary is used for paths
@@ -85,7 +81,7 @@ class simpleapp_tk(tk.Tk):
         if self.csv_handle:
             self.csv_handle.close()
         print self.controller.db.fieldnames
-        self.csv, self.csv_handle = createCsv(filename=csvFile, fieldnames=self.controller.db.fieldnames)
+        self.csv, self.csv_handle = create_csv(filename=csvFile, fieldnames=self.controller.db.fieldnames)
 
     def initialize(self):
 
@@ -267,11 +263,11 @@ class simpleapp_tk(tk.Tk):
             #category = self.category_str.get()
             #description = self.description_str.get()
             if self.created_str.get():
-                ddate = checkDate(self.created_str.get())
+                ddate = check_date(self.created_str.get())
             else:
-                ddate = checkDate(self.created_months.cget('values')[self.created_months.current()])
+                ddate = check_date(self.created_months.cget('values')[self.created_months.current()])
             #print ddate
-            value = checkValue(self.value_str.get())
+            value = check_value(self.value_str.get())
             #print value
             if self.dbTables.cget('values')[self.dbTables.current()].lower().startswith('cash'):
                 csvFile = self.csvFileCASH
@@ -319,9 +315,9 @@ class simpleapp_tk(tk.Tk):
                         if self.csv_handle:
                             self.csv_handle.close()
                 """
-            category = checkCategory(self.category_str.get())
+            category = check_category(self.category_str.get())
             #print repr(category)
-            description = checkDescription(self.description_str.get())
+            description = check_description(self.description_str.get())
             #print description
             args = [(ddate, value, category, description)]
             print 'write row'
@@ -346,9 +342,7 @@ class simpleapp_tk(tk.Tk):
 
         except AssertionError as e:
             print e
-        except MoneyExceptions.NumberOfDotsException as e:
-            print e
-        except MoneyExceptions.TooManyDigtsAfterDotException as e:
+        except ValueError as e:
             print e
         except Exception as e:
             print 'unhandled exception:', e
