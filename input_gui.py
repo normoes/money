@@ -1,123 +1,107 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
+"""
+
+This represents the GUI of the money program.
+
+This uses six.moves.tkinter to work.
+"""
+
 try:
-    from Tkinter import Listbox
-    from Tkinter import Scrollbar
-    from Tkinter import Button
-    from Tkinter import Canvas
+    from six.moves.tkinter import Listbox
+    from six.moves.tkinter import Scrollbar
+    from six.moves.tkinter import Button
+    # from six.moves.tkinter import Canvas
     #from Tkinter import Combobox
-    from Tkinter import Frame
-    from Tkinter import END
-    from Tkinter import ANCHOR
-    from Tkinter import SINGLE
-    from Tkinter import EXTENDED
-    from Tkinter import BOTH
-    from Tkinter import RIGHT
-    from Tkinter import LEFT
-    from Tkinter import TOP
-    from Tkinter import BOTTOM
-    from Tkinter import VERTICAL
-    from Tkinter import HORIZONTAL
-    from Tkinter import Y
-    from Tkinter import X
-    import Tkinter as tk
+    from six.moves.tkinter import Frame
+    from six.moves.tkinter import END
+    # from six.moves.tkinter import ANCHOR
+    from six.moves.tkinter import SINGLE
+    # from six.moves.tkinter import EXTENDED
+    from six.moves.tkinter import BOTH
+    from six.moves.tkinter import RIGHT
+    from six.moves.tkinter import LEFT
+    from six.moves.tkinter import TOP
+    from six.moves.tkinter import BOTTOM
+    from six.moves.tkinter import VERTICAL
+    from six.moves.tkinter import HORIZONTAL
+    from six.moves.tkinter import Y
+    from six.moves.tkinter import X
+    import six.moves.tkinter as tk
     #from Tkinter import ttk
-    import ttk
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
+    import six.moves.tkinter_ttk as ttk
+    import six.moves.tkinter_tkfiledialog as filedialog
+    import six.moves.tkinter_messagebox as messagebox
+    # import tkFileDialog as filedialog
+    # import tkMessageBox as messagebox
 except ImportError:
     raise ImportError, "The Tkinter module is required to run this program."
 
 import os
 import datetime
 
-from utils.input_client import check_date, check_value, check_category, check_description, create_csv
+from utils.input_client import check_date, check_value
+from utils.input_client import check_category, check_description, create_csv
 
-import moneyController as control
+import money_controller as control
 
-"""
-do not use same name for shortName --> dictionary is used for paths
-"""
-
-"""
-tKinter listbox
-    print 'width', self.listbox.cget("width")
-    print self.listbox.itemconfig(0, fg="red")
-    #config = self.listbox.config()
-    #for conf in config:
-    #    print conf
-    self.listbox.get(ACTIVE)
-    <<ListboxSelect>> for binding events to the selection of a item
-
-
-
-"""
-
-"""
-TODO:
- - adapt view to deployment style
- - get money.db (current working directory) like done in mergePDF.py
-
-
-"""
-
-class simpleapp_tk(tk.Tk):
-    def __init__(self, parent, databaseName = ''):
+class SimpleAppTk(tk.Tk):
+    def __init__(self, parent, database_name=''):
         ## class derives from Tkinter --> call its constructor
         tk.Tk.__init__(self, parent)
         ## keep track of the parent
         self.parent = parent
         self.initialize()
 
-        self.csvFileTARGO = 'expenditures_'+datetime.datetime.today().strftime('%Y_%m_%d_%H_%M_%S')+'.txt'
-        self.csvFileCASH = 'cash_'+datetime.datetime.today().strftime('%Y_%m_%d_%H_%M_%S')+'.txt'
+        self.csv_file_targo = 'expenditures_' + datetime.datetime.today().strftime('%Y_%m_%d_%H_%M_%S')+'.txt'
+        self.csv_file_cash = 'cash_' + datetime.datetime.today().strftime('%Y_%m_%d_%H_%M_%S')+'.txt'
         self.csv = None
         self.csv_handle = None
 
-        self.controller = control.moneyController(self, databaseName)
+        self.controller = control.MoneyController(self, database_name)
+        self.controller.logger.info('app started successfully')
 
-    def initialize_csv(self,csvFile):
+    def initialize_csv(self, csv_file):
         if self.csv_handle:
             self.csv_handle.close()
-        print self.controller.db.fieldnames
-        self.csv, self.csv_handle = create_csv(filename=csvFile, fieldnames=self.controller.db.fieldnames)
+        self.controller.logger.debug('fieldnames:' + ', '.join(self.controller.database.fieldnames))
+        self.csv, self.csv_handle = create_csv(filename=csv_file, fieldnames=self.controller.database.fieldnames)
 
     def initialize(self):
-
         # self.bind("<Escape>", lambda x: self.destroy())
-        self.bind("<Escape>", self.onclose)
+        self.bind("<Escape>", on_close)
 
-        listFrame0= Frame(self)
-        listFrame0.pack(side=TOP,fill=BOTH,expand=True)
-        listFrame= Frame(listFrame0)
-        listFrame.pack(side=LEFT,fill=BOTH,expand=True)
+        listFrame0 = Frame(self)
+        listFrame0.pack(side=TOP, fill=BOTH, expand=True)
+        listFrame = Frame(listFrame0)
+        listFrame.pack(side=LEFT, fill=BOTH, expand=True)
 
-        scrollbary = Scrollbar(listFrame , orient=VERTICAL)
+        scrollbary = Scrollbar(listFrame, orient=VERTICAL)
         scrollbary.pack(side=RIGHT, fill=Y)
-        scrollbarx = Scrollbar(listFrame , orient=HORIZONTAL)
+        scrollbarx = Scrollbar(listFrame, orient=HORIZONTAL)
         scrollbarx.pack(side=BOTTOM, fill=X)
         ##bd --> border
-        self.listbox = Listbox(listFrame,bd=1, selectmode=SINGLE, yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
-        self.listbox.bind('<<ListboxSelect>>',self.OnSelectClick)
+        self.listbox = Listbox(listFrame, bd=1, selectmode=SINGLE, yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+        self.listbox.bind('<<ListboxSelect>>', self.on_select_click)
         scrollbary.config(command=self.listbox.yview)
         scrollbarx.config(command=self.listbox.xview)
         self.listbox.config(width=self.listbox.winfo_reqwidth()//3)          #width=self.listbox.winfo_reqwidth()
-        self.listbox.pack(side=LEFT, fill=BOTH,expand=True)
+        self.listbox.pack(side=LEFT, fill=BOTH, expand=True)
 
-        listFrame1= Frame(listFrame0)
-        listFrame1.pack(side=LEFT,fill=BOTH,expand=True)
-        scrollbary1 = Scrollbar(listFrame1 , orient=VERTICAL)
+        listFrame1 = Frame(listFrame0)
+        listFrame1.pack(side=LEFT, fill=BOTH, expand=True)
+        scrollbary1 = Scrollbar(listFrame1, orient=VERTICAL)
         scrollbary1.pack(side=RIGHT, fill=Y)
-        scrollbarx1 = Scrollbar(listFrame1 , orient=HORIZONTAL)
+        scrollbarx1 = Scrollbar(listFrame1, orient=HORIZONTAL)
         scrollbarx1.pack(side=BOTTOM, fill=X)
         ##bd --> border
-        self.listbox1 = Listbox(listFrame1,bd=0, selectmode=SINGLE, yscrollcommand=scrollbary1.set, xscrollcommand=scrollbarx1.set)
-        self.listbox1.bind('<<ListboxSelect>>',self.OnUpdateSelectClick)
+        self.listbox1 = Listbox(listFrame1, bd=0, selectmode=SINGLE, yscrollcommand=scrollbary1.set, xscrollcommand=scrollbarx1.set)
+        self.listbox1.bind('<<ListboxSelect>>', self.on_update_select_click)
         scrollbary1.config(command=self.listbox1.yview)
         scrollbarx1.config(command=self.listbox1.xview)
         self.listbox1.config(width=self.listbox1.winfo_reqwidth()//2)          #width=self.listbox.winfo_reqwidth()
-        self.listbox1.pack(side=LEFT, fill=BOTH,expand=True)
+        self.listbox1.pack(side=LEFT, fill=BOTH, expand=True)
 
 
         textFrame = Frame(self)
@@ -128,7 +112,7 @@ class simpleapp_tk(tk.Tk):
         self.created_months['values'] = ('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12')
         self.created_months.set(datetime.date.today().strftime('%m'))
         self.created_months.state(['readonly'])
-        #self.created_months.bind('<<ComboboxSelected>>', self.OnTableSelect)
+        #self.created_months.bind('<<ComboboxSelected>>', self.On_table_select)
         self.value_str = tk.StringVar()
         value = tk.Entry(textFrame, textvariable=self.value_str)
         self.category_str = tk.StringVar()
@@ -137,44 +121,44 @@ class simpleapp_tk(tk.Tk):
         description = tk.Entry(textFrame, textvariable=self.description_str)
         #self.checkVar = tk.IntVar()
         #check = tk.Checkbutton(textFrame, text="table cash", variable=self.checkVar), command=self.checkClicked)
-        fillFromCSVButton = Button(textFrame, text="fill from csv")
-        fillFromCSVButton.bind('<Button-1>',self.OnFillFromCSVClick)
+        fill_from_csv_button = Button(textFrame, text="fill from csv")
+        fill_from_csv_button.bind('<Button-1>', self.on_fill_from_csv_click)
         #self.table_str = StringVar()
         #self.table_str.set("one") # default value
-        self.dbTables = ttk.Combobox(textFrame)
-        self.dbTables.state(['readonly'])
-        self.dbTables.bind('<<ComboboxSelected>>', self.OnTableSelect)
+        self.db_tables = ttk.Combobox(textFrame)
+        self.db_tables.state(['readonly'])
+        self.db_tables.bind('<<ComboboxSelected>>', self.on_table_select)
         created.pack(side=LEFT)
         self.created_months.pack(side=LEFT)
         value.pack(side=LEFT)
         category.pack(side=LEFT)
         description.pack(side=LEFT)
         #check.pack(side=LEFT)
-        fillFromCSVButton.pack(side=LEFT)
-        self.dbTables.pack(side=LEFT)
+        fill_from_csv_button.pack(side=LEFT)
+        self.db_tables.pack(side=LEFT)
 
 
-        buttonFrame = Frame(self)
-        buttonFrame.pack(fill=X)#,expand=True)
+        button_frame = Frame(self)
+        button_frame.pack(fill=X)#,expand=True)
 
-        saveButton = Button(buttonFrame, text="save entry")
-        saveButton.bind('<Button-1>',self.OnSaveEntryClick)
+        save_button = Button(button_frame, text="save entry")
+        save_button.bind('<Button-1>', self.on_save_entry_click)
 
-        databaseButton = Button(buttonFrame, text="select database")
-        databaseButton.bind('<Button-1>',self.OnDatabaseClick)
-        self.databasePath_str = tk.StringVar()
-        self.databasePath = tk.Label(buttonFrame, textvariable=self.databasePath_str, bg="white", anchor=tk.W)
+        database_button = Button(button_frame, text="select database")
+        database_button.bind('<Button-1>', self.on_database_click)
+        self.database_path_str = tk.StringVar()
+        self.database_path = tk.Label(button_frame, textvariable=self.database_path_str, bg="white", anchor=tk.W)
 
-        saveButton.pack(side=LEFT)
-        databaseButton.pack(side=RIGHT)
-        self.databasePath.pack(side=RIGHT)    #, expand=True, fill=BOTH fill=BOTH,
+        save_button.pack(side=LEFT)
+        database_button.pack(side=RIGHT)
+        self.database_path.pack(side=RIGHT)    #, expand=True, fill=BOTH fill=BOTH,
 
         debugFrame = Frame(self)
-        debugFrame.pack(side=BOTTOM,fill=X)#,expand=True)
-        self.lastEntry = tk.StringVar()
-        self.pathLabel = tk.Label(debugFrame, textvariable=self.lastEntry, bg="white", anchor=tk.W)
+        debugFrame.pack(side=BOTTOM, fill=X)#,expand=True)
+        self.last_entry = tk.StringVar()
+        self.path_label = tk.Label(debugFrame, textvariable=self.last_entry, bg="white", anchor=tk.W)
 
-        self.pathLabel.pack(side=LEFT,fill=BOTH,expand=True)
+        self.path_label.pack(side=LEFT, fill=BOTH, expand=True)
 
 
         #self.resizable(True,True)
@@ -198,40 +182,41 @@ class simpleapp_tk(tk.Tk):
         self.minsize(self.winfo_reqwidth(), self.winfo_reqheight())
 
 
-    def clearCategories(self):
-        self.listbox.delete(0,END)
-    def addToCategories(self, value):
+    def clear_categories(self):
+        self.listbox.delete(0, END)
+    def add_to_categories(self, value):
         self.listbox.insert(END, value)
 
-    def clearEntries(self):
-        self.listbox1.delete(0,END)
-    def addToEntries(self, value):
+    def clear_entries(self):
+        self.listbox1.delete(0, END)
+    def add_to_entries(self, value):
         self.listbox1.insert(END, value)
 
-    def OnDatabaseClick(self,event):
-        fname = filedialog.askopenfilename(filetypes=(("money files", "*.db"), ("All files", "*.*") ))
-        self.controller.initialize_db(databaseName=fname)
-        #self.controller.populate()
-    def OnFillFromCSVClick(self, event):
-        fname = filedialog.askopenfilename(filetypes=(("txt(csv)", "*.txt"), ("csv", "*.csv"), ("All files", "*.*") ))
-        self.controller.fillFromCSV(fname)
+    def on_database_click(self, event):
+        fname = filedialog.askopenfilename(filetypes=(("money files", "*.db"), ("All files", "*.*")))
+        if fname:
+            self.controller.initialize_db(database_name=fname)
+            #self.controller.populate()
+    def on_fill_from_csv_click(self, event):
+        fname = filedialog.askopenfilename(filetypes=(("txt(csv)", "*.txt"), ("csv", "*.csv"), ("All files", "*.*")))
+        self.controller.fill_from_csv(fname)
 
-    def OnTableSelect(self, event):
-        print self.dbTables.current()
-        self.controller.tableSelect(table=self.dbTables.cget('values')[self.dbTables.current()])
+    def on_table_select(self, event):
+        self.controller.logger.debug(self.db_tables.current())
+        self.controller.table_select(table=self.db_tables.cget('values')[self.db_tables.current()])
         #if self.dbTables.cget('values')[self.dbTables.current()] == 'expenditures':
         #    self.initialize_csv(csvFile=self.csvFileTARGO)
         #elif self.dbTables.cget('values')[self.dbTables.current()] == '':
         #    self.initialize_csv(csvFile=self.csvFileCASH)
         #self.controller.initialize_table()
 
-    def OnSelectClick(self, event):
+    def on_select_click(self, event):
         ## ANCHOR has new value when mouse button is pressed
         ## ACTIVE has new value when mouse button is released
-        print tk.ANCHOR
-        print self.listbox.get(tk.ANCHOR)[0]
+        self.controller.logger.debug(tk.ANCHOR)
+        self.controller.logger.debug(self.listbox.get(tk.ANCHOR)[0])
         self.category_str.set(self.listbox.get(tk.ANCHOR)[0])   # is tuple --> [0]
-    def OnUpdateSelectClick(self, event):
+    def on_update_select_click(self, event):
         ## ANCHOR has new value when mouse button is pressed
         ## ACTIVE has new value when mouse button is released
         line = self.listbox1.get(tk.ANCHOR)
@@ -241,8 +226,8 @@ class simpleapp_tk(tk.Tk):
         category = ''
         description = ''
         if len(line) > 0:
-            self.controller.db.id = int(line[0])
-            print 'selected id', self.controller.db.id
+            self.controller.database.id = int(line[0])
+            print 'selected id', self.controller.database.id
         if len(line) > 1:
             created = line[1]
         if len(line) > 2:
@@ -256,7 +241,7 @@ class simpleapp_tk(tk.Tk):
         self.category_str.set(category)
         self.description_str.set(description)
 
-    def OnSaveEntryClick(self, event):
+    def on_save_entry_click(self, event):
         try:
             #ddate = self.created_str.get()
             #value = self.value_str.get()
@@ -269,109 +254,65 @@ class simpleapp_tk(tk.Tk):
             #print ddate
             value = check_value(self.value_str.get())
             #print value
-            if self.dbTables.cget('values')[self.dbTables.current()].lower().startswith('cash'):
-                csvFile = self.csvFileCASH
-                """
-                category = self.category_str.get()
-                #print repr(category)
-                description = self.description_str.get()
-                #print description
-                args = [(ddate, value, category, description)]
-                #args = [(ddate, value)]
-                print 'write row'
-                self.initialize_csv(self.csvFileCASH)
-                if self.csv:
-                    try:
-                        print self.csvFileCASH
-                        if self.controller.filechecker.isEmpty(self.csvFileCASH):
-                            print 'writing header'
-                            self.csv.writeheader()
-                        self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value, 'category':category, 'description': description})
-                        #self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value})
-                        print 'row written'
-                    finally:
-                        if self.csv_handle:
-                            self.csv_handle.close()
-                """
+            if self.db_tables.cget('values')[self.db_tables.current()].lower().startswith('cash'):
+                csv_file = self.csv_file_cash
             else:
-                csvFile = self.csvFileTARGO
-                """
-                category = checkCategory(self.category_str.get())
-                #print repr(category)
-                description = checkDescription(self.description_str.get())
-                #print description
-                args = [(ddate, value, category, description)]
-                print 'write row'
-                self.initialize_csv(self.csvFileTARGO)
-                if self.csv:
-                    try:
-                        print self.csvFileTARGO
-                        if self.controller.filechecker.isEmpty(self.csvFileTARGO):
-                            print 'writing header'
-                            self.csv.writeheader()
-                        self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value, 'category':category, 'description': description})
-                        print 'row written'
-                    finally:
-                        if self.csv_handle:
-                            self.csv_handle.close()
-                """
+                csv_file = self.csv_file_targo
             category = check_category(self.category_str.get())
             #print repr(category)
             description = check_description(self.description_str.get())
             #print description
             args = [(ddate, value, category, description)]
-            print 'write row'
-            self.initialize_csv(csvFile)
+            self.controller.logger.debug('write row')
+            self.initialize_csv(csv_file)
             if self.csv:
                 try:
-                    print csvFile
-                    if self.controller.filechecker.isEmpty(csvFile):
-                        print 'writing header'
+                    print csv_file
+                    if self.controller.filechecker.isEmpty(csv_file):
+                        self.controller.logger.debug('writing header of csv file')
                         self.csv.writeheader()
-                    #print description
-                    print repr(description)
-                    #print description.decode('utf-8')
-                    print repr(description.encode('utf-8'))
+                    self.controller.logger.info(repr(description))
+                    self.controller.logger.info(repr(description.encode('utf-8')))
 
-                    self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value, 'category':category, 'description': description.encode('utf-8')})
-                    print 'row written'
+                    self.csv.writerow({'created': ddate.strftime('%Y-%m-%d'), 'value': value, 'category':category.encode('utf-8'), 'description': description.encode('utf-8')})
+                    self.controller.logger.debug('row written')
                 finally:
                     if self.csv_handle:
                         self.csv_handle.close()
-            self.controller.insertIntoDb(args)
+            self.controller.insert_into_db(args)
 
         except AssertionError as e:
-            print e
+            self.controller.logger.error(e)
         except ValueError as e:
-            print e
+            self.controller.logger.error(e)
         except Exception as e:
-            print 'unhandled exception:', e
+            self.controller.logger.error('unhandled exception:' + str(e))
 
-    def onclose(self, event):
-        closeApp()
+def on_close(event):
+    close_app()
 
-def closeApp():
+def close_app():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
-        print 'cleaning empty files'
-        print app.csvFileTARGO
-        print app.csvFileCASH
-        if app.controller.filechecker.isEmpty(app.csvFileTARGO):
-            os.remove(app.csvFileTARGO)
-        if app.controller.filechecker.isEmpty(app.csvFileCASH):
-            os.remove(app.csvFileCASH)
-        if app.csv_handle:
-            app.csv_handle.close()
-        print 'closing application'
-        app.destroy()
+        APP.controller.logger.debug('closing application')
+        APP.controller.logger.debug('cleaning empty files')
+        APP.controller.logger.debug(APP.csv_file_targo)
+        APP.controller.logger.debug(APP.csv_file_cash)
+        if APP.controller.filechecker.isEmpty(APP.csv_file_targo):
+            os.remove(APP.csv_file_targo)
+        if APP.controller.filechecker.isEmpty(APP.csv_file_cash):
+            os.remove(APP.csv_file_cash)
+        if APP.csv_handle:
+            APP.csv_handle.close()
+        APP.destroy()
 
-app = None
+APP = None
 # if __name__ == "__main__":
-app = simpleapp_tk(None, r"money.db")
-app.title('money input')
+APP = SimpleAppTk(None, database_name=r"money.db")
+APP.title('money input')
 
 #app.wm_attributes('-topmost', 1) # always on top
-app.protocol("WM_DELETE_WINDOW", closeApp)
+APP.protocol("WM_DELETE_WINDOW", close_app)
 
-app.mainloop()
+APP.mainloop()
 
-print 'everything closed'
+APP.controller.logger.info('program closed')

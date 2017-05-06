@@ -6,6 +6,7 @@ import os
 import datetime
 import file_checker
 
+
 def check_date_deco(func):
     """decorator function for date checking functions
 
@@ -161,9 +162,9 @@ def example_create_csv(filename, fieldnames):
             fh.close()
 
 if __name__ == '__main__':
-    fieldnames = ['created','value','category', 'description']
-    filename = 'money_test.txt'
+    FIELDNAMES = ['created','value','category', 'description']
+    FILENAME = 'money_test.txt'
     # write csv file
-    example_create_csv(filename=filename,fieldnames=fieldnames)
+    example_create_csv(filename=FILENAME,fieldnames=FIELDNAMES)
     # check csv file
-    test_csv(filename=filename, debug=True)
+    test_csv(filename=FILENAME, debug=True)

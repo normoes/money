@@ -6,18 +6,18 @@ def dbConnectAndClose(f):
         print kwarg
         if args:
             try:
-                print 'database name', args[0].db.name
-                args[0].db.connect()
+                print 'database name', args[0].database.name
+                args[0].database.connect()
                 print 'database connected'
                 print 'call function', f
                 result = f(*args,**kwarg)
             except Exception as e:
                 print 'Exception occurred'
-                args[0].db.rollback()
+                args[0].database.rollback()
                 raise e
             finally:
                 print 'done calling function', f
-                args[0].db.close()
+                args[0].database.close()
                 print 'database closed'
         else:
             pass

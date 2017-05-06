@@ -5,3 +5,6 @@ DONE/
 *.original
 *.BAK
 *.db_
+*.log
+*.png
+test/

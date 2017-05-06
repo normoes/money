@@ -11,7 +11,7 @@ class fileChecker():
         exists = os.path.exists(name)
         if not exists:
             if self.logger:
-                self.logger.log('exists: ' + str(exists) + ': '+ name)
+                self.logger.debug('exists: ' + str(exists) + ': '+ name)
         return exists
     def isEmpty(self, name):
         size = 1
@@ -20,9 +20,9 @@ class fileChecker():
                 size = os.path.getsize(name)
             except OSError as e:
                 if self.logger:
-                    self.logger.log(e)
+                    self.logger.error(e)
             if self.logger:
-                self.logger.log('size: ' + self.humansize(size))
+                self.logger.debug('size: ' + self.humansize(size))
         return not(size > 0)
     def process(self, name):
         return self.exists(name) and not self.isEmpty(name)
@@ -36,7 +36,7 @@ class fileChecker():
         f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
         return '%s %s' % (f, self.suffixes[i])
 
-if __name__ == '__main__':
-    print __package__
-    print __name__
-    print __file__
+# if __name__ == '__main__':
+    # print __package__
+    # print __name__
+    # print __file__

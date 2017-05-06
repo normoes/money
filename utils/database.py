@@ -3,49 +3,49 @@ from utils.dbConnect_deco import dbConnectAndClose
 
 """
 TODO (see TODO in moneyController.py)
-    connect then close db in every funtion
+    connect then close database in every funtion
         --> decorator
 """
 
 class Database():
     def __init__(self, type='', name='', schema='', debug=False):
-        self.db= SQLlite_DB(name=name, schema=schema, debug=debug)
+        self.database= SQLlite_DB(name=name, schema=schema, debug=debug)
         self.name = name
         self.fieldnames = None
         self.table = ''
         self.id = -1
 
     def connect(self):
-        self.db.connect()
+        self.database.connect()
     def close(self):
-        self.db.close()
+        self.database.close()
     def rollback(self):
-        self.db.rollback()
+        self.database.rollback()
 
     def query(self, sql, args = None):
-        return self.db.query(sql, args)
+        return self.database.query(sql, args)
 
     def insert(self, table, cols, args):
         if not table:
             table = self.table
         if not cols:
             cols = self.fieldnames
-        self.db.insert(self.table, ', '.join(self.fieldnames), args)
+        self.database.insert(self.table, ', '.join(self.fieldnames), args)
 
     def fetchone(self):
-        return self.db.fetchone()
+        return self.database.fetchone()
 
     def fetchall(self):
-        return self.db.fetchall()    
+        return self.database.fetchall()    
 
     def createTable(self, schema):
-        self.db.createTable(schema)
+        self.database.createTable(schema)
     def dropTable(self, table):
-        self.db.dropTable(table)
+        self.database.dropTable(table)
     def emptyTable(self, table):
-        self.db.emptyTable(table)
+        self.database.emptyTable(table)
     def getAllTables(self):
-        results = self.db.getAllTables()
+        results = self.database.getAllTables()
         print 'all the tables in the database', results
         #return [result[0] for result in results]
         return results
@@ -56,13 +56,13 @@ class Database():
     def getColumns(self, table=''):
         if not table:
             table = self.table
-        return self.db.getColumns(table)
+        return self.database.getColumns(table)
 
     def setInsertColumns(self, table=''):
         if not table:
             table = self.table
         print 'querying all table columns in', self.table
-        self.fieldnames = self.db.getInsertColumns(table)
+        self.fieldnames = self.database.getInsertColumns(table)
         print 'columns from', self.table, '(without id column):', self.fieldnames    
     def initialize(self, table):
         self.table = table

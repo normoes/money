@@ -11,17 +11,27 @@ class Input(unittest.TestCase):
         pass
 
     def test_dates(self):
-        try:
-            self.assertEqual(input_client.check_date('2016')), 'no date'
-        except ValueError as e:
-            print e
-        with self.assertRaises(ValueError) as contexts:
+        import datetime
+        current_year = datetime.datetime.today().strftime('%Y')
+        # print repr(current_year+'0101')
+        compare_date = datetime.date(int(current_year),int('01'),int('01'))
+        # print repr(input_client.check_date('01').strftime('%Y%m%d'))
+        self.assertEqual(input_client.check_date('01'), compare_date), 'only month given, day=01 and current year'
+        self.assertEqual(input_client.check_date('1'), compare_date), 'only month given, day=01 and current year'
+        with self.assertRaises(ValueError) as context:
+            input_client.check_date('13')
+        with self.assertRaises(ValueError) as context:
+            input_client.check_date('0')
+        # try:
+        #     self.assertEqual(input_client.check_date('2016')), 'no date'
+        # except ValueError as e:
+        #     print e
+        with self.assertRaises(ValueError) as context:
             input_client.check_date('2016')
-        self.assertRaises(ValueError, lambda: input_client.check_date('2016'))
-        # self.assertRaises(ValueError, input_client.check_date('2016'))
+        # self.assertRaises(ValueError, lambda: input_client.check_date('2016'))
 
 
-    def test_moneyValue(self):
+    def test_money_value(self):
         assert(type(input_client.check_value('123')) == float), 'not float'
         self.assertEqual(input_client.check_value('123'), 123.0), 'not float'
         assert(type(input_client.check_value('123.0')) == float), 'not float'
@@ -37,30 +47,20 @@ class Input(unittest.TestCase):
         assert(type(input_client.check_value('-.3')) == float), 'not float'
         assert(input_client.check_value('-.3') == -.3), 'not float'
 
-        try:
+        # try:
+        #     input_client.check_value('')
+        # except ValueError as e:
+        #     print e
+        with self.assertRaises(ValueError) as context:
             input_client.check_value('')
-        except ValueError as e:
-            print e
-        try:
+        with self.assertRaises(ValueError) as context:
             input_client.check_value('--123.')
-        except ValueError as e:
-            print e
-        try:
-            input_client.check_value('-.312')
-        except ValueError as e:
-            print e
-        try:
+        with self.assertRaises(ValueError) as context:
             input_client.check_value('123..')
-        except ValueError as e:
-            print e
-        try:
+        with self.assertRaises(ValueError) as context:
             input_client.check_value('.123.')
-        except ValueError as e:
-            print e
-        try:
+        with self.assertRaises(ValueError) as context:
             input_client.check_value(',123,')
-        except ValueError as e:
-            print e
 
 if __name__ == '__main__':
     unittest.main()
