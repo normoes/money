@@ -8,3 +8,4 @@ DONE/
 *.log
 *.png
 test/
+.idea
