@@ -4,7 +4,10 @@
 import csv
 import os
 import datetime
-import file_checker
+import utils.file_checker as file_checker
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def check_date_deco(func):
@@ -17,12 +20,11 @@ def check_date_deco(func):
         ddate, error = func(date_str)
         if not ddate:
             raise ValueError(str(error) + ' / date value: ' + repr(value))
-        #assert(not ddate is None), str(error) + ' / date value: ' + repr(value)
         return ddate
     return new_func
 
-## don't forget to close the file, when done
-def get_csv_reader(filePath, debug=False):
+
+def get_csv_reader(filePath, debug=False):  # don't forget to close the file, when done
     if os.path.exists(filePath) and os.path.isfile(filePath):
         fh = open(filePath, 'rb')
         fieldnames = list()
@@ -31,9 +33,9 @@ def get_csv_reader(filePath, debug=False):
             if header.rstrip():
                 fieldnames.extend(header.rstrip().split(';'))
         except Exception as e:
-            print e
+            logger.error(e)
         if debug:
-            print fieldnames
+            logger.debug(fieldnames)
         return csv.DictReader(fh, fieldnames, delimiter=";"), fh
     return None, None
 
@@ -95,16 +97,15 @@ def check_value(value):
     return float(result[0])
 
 def example_get_csv_reader(filename='', debug=False):
-    print "n way"
-    print "yipiihh"
-    print filename, debug
+    if debug:
+        logger.debug(filename, debug)
     reader, fh = get_csv_reader(filename, debug=debug)
-    print "test reader created"
+    print("test reader created")
     try:
         if reader:
             for row in reader:
                 if debug:
-                    print row
+                    logger.debug(row)
                 try:
                     ddate = check_date(row['created'])
                     value = check_value(row['value'])
@@ -112,37 +113,35 @@ def example_get_csv_reader(filename='', debug=False):
                     description = check_description(row['description'])
                     yield (ddate, value, category, description)
                 except AssertionError as e:
-                    print e
+                    logger.error(e)
                 except ValueError as ve:
-                    print ve
+                    logger.error(ve)
     finally:
         if fh:
             fh.close()
-    print "done!!"
+    print("done!!")
+
 
 def test_csv(filename, debug=False):
-    print filename
+    print(filename)
     for item in example_get_csv_reader(filename=filename, debug=debug):
-        print item
-    print "done"
+        print(item)
+    print("done")
 
-## don't forget to close the file, when done
-def create_csv(filename, fieldnames):
+
+def create_csv(filename, fieldnames):  # don't forget to close the file, when done
     try:
-        #filecheck = filechecker.fileChecker()
         fh = open(filename, 'ab')
 
         writer = csv.DictWriter(fh, fieldnames=fieldnames, delimiter=";")
-        #print writer
         fc = file_checker.fileChecker()
         if fc.isEmpty(filename):
-            print 'writing header'
+            logger.debug('writing header')
             writer.writeheader()
-        print fieldnames
-        #print 'returning csv'
+        logger.debug(fieldnames)
         return writer, fh
     except Exception as e:
-        print e
+        logger.error(e)
     return None, None
 
 
@@ -150,21 +149,22 @@ def example_create_csv(filename, fieldnames):
     writer, fh = create_csv(filename=filename, fieldnames=fieldnames)
     try:
         value = -1.23
-        writer.writerow({'created': datetime.datetime.today().strftime('%Y-%m-%d'), 'value': value, 'category':'shopping', 'description': 'Hausschuhe'})
+        writer.writerow({'created': datetime.datetime.today().strftime('%Y-%m-%d'), 'value': value, 'category': 'shopping', 'description': 'Hausschuhe'})
         value = -45.312
-        writer.writerow({'created': '2016-2-neu', 'value': value, 'category':'shopping', 'description': 'Hausschuhe'})
+        writer.writerow({'created': '2016-2-neu', 'value': value, 'category': 'shopping', 'description': 'Hausschuhe'})
         value = -45.312
-        writer.writerow({'created': '2016-2-32', 'value': value, 'category':'shopping', 'description': 'Hausschuhe'})
+        writer.writerow({'created': '2016-2-32', 'value': value, 'category': 'shopping', 'description': 'Hausschuhe'})
         value = -45.312
-        writer.writerow({'created': '2016-0-12', 'value': value, 'category':'shopping', 'description': 'Hausschuhe'})
+        writer.writerow({'created': '2016-0-12', 'value': value, 'category': 'shopping', 'description': 'Hausschuhe'})
     finally:
         if fh:
             fh.close()
 
+
 if __name__ == '__main__':
-    FIELDNAMES = ['created','value','category', 'description']
+    FIELDNAMES = ['created', 'value', 'category', 'description']
     FILENAME = 'money_test.txt'
     # write csv file
-    example_create_csv(filename=FILENAME,fieldnames=FIELDNAMES)
+    example_create_csv(filename=FILENAME, fieldnames=FIELDNAMES)
     # check csv file
     test_csv(filename=FILENAME, debug=True)

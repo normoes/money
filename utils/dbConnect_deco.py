@@ -1,25 +1,28 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def dbConnectAndClose(f):
-    def new_f(*args,**kwarg):
+    def new_f(*args, **kwarg):
         # arrgs[0] represents self, which is the first parameter
         result = None
-        print args
-        print kwarg
         if args:
+            if not args[0].database:
+                raise ValueError('database object missing')
+            logger.debug('database name: {}'.format(args[0].database_name))
             try:
-                print 'database name', args[0].database.name
                 args[0].database.connect()
-                print 'database connected'
-                print 'call function', f
-                result = f(*args,**kwarg)
-            except Exception as e:
-                print 'Exception occurred'
+                logger.debug('database connected')
+                # print 'call function', f
+                result = f(*args, **kwarg)
+            except Exception:  # TODO group exception types
+                logger.exception('Exception')
                 args[0].database.rollback()
-                raise e
             finally:
-                print 'done calling function', f
                 args[0].database.close()
-                print 'database closed'
+                logger.debug('database closed')
         else:
-            pass
+            logger.warn('no self (class) given')
         return result
     return new_f

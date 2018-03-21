@@ -9,3 +9,7 @@ DONE/
 *.png
 test/
 .idea
+.bash_history
+.cache/
+.local/
+.virtualenvs
