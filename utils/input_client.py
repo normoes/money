@@ -25,19 +25,23 @@ def check_date_deco(func):
 
 
 def get_csv_reader(filePath, debug=False):  # don't forget to close the file, when done
-    if os.path.exists(filePath) and os.path.isfile(filePath):
-        fh = open(filePath, 'rb')
-        fieldnames = list()
-        header = fh.readline()
-        try:
-            if header.rstrip():
-                fieldnames.extend(header.rstrip().split(';'))
-        except Exception as e:
-            logger.error(e)
-        if debug:
-            logger.debug(fieldnames)
-        return csv.DictReader(fh, fieldnames, delimiter=";"), fh
-    return None, None
+
+    if not os.path.isfile(filePath):
+        raise ValueError('path not found:{0}'.format(filePath))
+    fh = open(filePath, 'r', encoding='utf-8')
+    fieldnames = list()
+    # from io import BytesIO, StringIO
+    header = fh.readline()
+    try:
+        logger.debug(header.rstrip())
+        if header.rstrip():
+            fieldnames.extend(header.rstrip().split(';'))
+    except Exception:
+        logger.exception('getting header from csv')
+    if debug:
+        logger.debug(fieldnames)
+    return csv.DictReader(fh, fieldnames, delimiter=";"), fh
+
 
 @check_date_deco
 def check_date(value):
@@ -54,7 +58,7 @@ def check_date(value):
     year = datetime.datetime.today().strftime('%Y')
     month = ''
     day = '01'
-    if len(value) == 1: # only month given
+    if len(value) == 1:  # only month given
         month = value[0]
     elif len(value) >= 2 and len(value) <= 3:
         year = value[0]
@@ -71,30 +75,35 @@ def check_date(value):
         error = e
     return None, error
 
+
 def check_category(value):
     assert(len(value) > 0), 'no category selected'
     return value
+
+
 def check_description(value):
     assert(len(value) > 0), 'no description selected'
     return value
 
+
 def check_value(value):
     import re
     p = re.compile(',')
-    value = p.sub('.',value)
-    if (len(value) == 0) or (value =='-'):
+    value = p.sub('.', value)
+    if (len(value) == 0) or (value == '-'):
         raise ValueError('value musn\'t be empty ' + repr(value))
     if value.count('-') > 1:
         raise ValueError('too many \'-\' in money value ' + repr(value))
     if value.count('.') > 1:
         raise ValueError('too many \'.\' in money value ' + repr(value))
-    if value.count('.')==1:
+    if value.count('.') == 1:
         if len(value.split('.')[1]) > 2:
             raise ValueError('too many digits after dot ' + repr(value))
     p = re.compile('[-+]?[0-9]*\.?[0-9]*')
     result = p.findall(value)
-    assert(len(result)==2), 'check money format: ' + repr(value)
+    assert(len(result) == 2), 'check money format: ' + repr(value)
     return float(result[0])
+
 
 def example_get_csv_reader(filename='', debug=False):
     if debug:
@@ -112,10 +121,10 @@ def example_get_csv_reader(filename='', debug=False):
                     category = check_category(row['category'])
                     description = check_description(row['description'])
                     yield (ddate, value, category, description)
-                except AssertionError as e:
-                    logger.error(e)
-                except ValueError as ve:
-                    logger.error(ve)
+                except AssertionError:
+                    logger.exception('validating entry')
+                except ValueError:
+                    logger.exception('Exception')
     finally:
         if fh:
             fh.close()
@@ -140,8 +149,8 @@ def create_csv(filename, fieldnames):  # don't forget to close the file, when do
             writer.writeheader()
         logger.debug(fieldnames)
         return writer, fh
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception('Exception')
     return None, None
 
 
