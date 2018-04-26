@@ -92,7 +92,7 @@ class SqliteDb():
         args_str = tuple('?') * len(args[0])
         sql = 'INSERT INTO {0}({1}) values ({2})'.format(table.strip(), cols.strip(), ','.join(args_str))
         if self.debug:
-            logger.debug(sql, args)
+            logger.debug('{0}, {1}'.format(sql, args))
         self.cursor.executemany(sql, args)
         self.commit()
 

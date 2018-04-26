@@ -9,6 +9,8 @@ Here, the database connections are handled and
 data is written back into the gui components.
 """
 
+import argparse
+import sys
 import logging
 import os
 import fill_from_file as from_csv
@@ -26,17 +28,16 @@ class MoneyController(object):
     writes data back to the GUI.
     """
     def __init__(self, database_name='money.db', path='', debug=False):
-        # self.view = view
         self.database = None
         self.debug = debug
 
         self.database_name = database_name
-        self.path = os.path.abspath(os.path.dirname(path))
+        self.path = path
 
         self.logger = logging.getLogger('money controller')
         self.logger.setLevel(logging.DEBUG)
 
-        logname = os.path.join(self.path, ('money.log'))
+        logname = os.path.join(os.path.abspath(os.path.dirname(self.path)), ('money.log'))
         file_handler = RotatingFileHandler(logname, maxBytes=1000000, backupCount=2)
         file_handler.setLevel(logging.DEBUG)
         # console logger with higher logging level
@@ -49,7 +50,6 @@ class MoneyController(object):
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
 
-        # self.initialize_db(self.database_name)
         self.filechecker = fc.fileChecker(self.logger)
 
     @printException
@@ -63,30 +63,11 @@ class MoneyController(object):
         """
         self.logger.debug(table)
         self.database.initialize(table)
-        # if self.view:
-        #     # print 'selected combobox table index:', self.view.db_tables.current()
-        #     # print 'TODOOO:', self.view.db_tables.cget('values')[self.view.db_tables.current()]
-        #     # self.database.initialize(self.view.db_tables.cget('values')[self.view.db_tables.current()])
-        #     # self.database.initialize(table)
-        #     self.view.database_path_str.set(os.path.basename(self.database_name) + ' ' + self.database.table)
-        #     print "databse path: ", self.view.database_path_str.get()
-        #
-        #     self.populate_categories()
-        #     self.show_entries()
 
     def initialize_db(self, database_name):
         # print"===initialize db==="
         if not len(database_name) == 0:
             self.database = Database(name=database_name, debug=True)
-            self.database.path = self.path
-            # print 'TOCHECK: abs path on start'
-            # self.populate_tables_combobox()
-            # if self.view:
-            #     tablename = self.view.db_tables.cget('values')[self.view.db_tables.current()]
-            # else:
-            # tablename = 'expenditures'
-            #
-            # self.initialize_table(table=tablename)
 
     @printException
     @dbConnectAndClose
@@ -97,27 +78,11 @@ class MoneyController(object):
     # initialize with data from file
     @printException
     @dbConnectAndClose
-    def get_all_categories(self):
-        sql = 'SELECT distinct(category) FROM ' + self.database.table + ' ORDER BY category COLLATE NOCASE ASC'
+    def get_all_categories(self, table=''):
+        if not table:
+            table = self.database.table
+        sql = 'SELECT distinct(category) FROM ' + table + ' ORDER BY category COLLATE NOCASE ASC'
         self.database.query(sql)
-        return self.database.fetchall()
-    # def populate_categories(self):
-    #     print '===populate_categories(self)==='
-    #     if self.view:
-    #         self.view.clear_categories()
-    #         sql = 'SELECT distinct(category) FROM ' + self.database.table + ' ORDER BY category COLLATE NOCASE ASC'
-    #         self.database.query(sql)
-    #         rows = self.database.fetchall()
-    #         if rows:
-    #             for row in rows:
-    #                 self.view.add_to_categories(row)
-
-    @printException
-    @dbConnectAndClose
-    def get_latest_entries(self):
-        # print 'colums from selected table: ', self.database.fieldnames
-        sql = 'SELECT ' + self.database.getColumnsSQL() + ' FROM ' + self.database.table + ' ORDER BY id DESC LIMIT 100'
-        # self.database.query(sql)
         return self.database.fetchall()
 
     @printException
@@ -127,22 +92,35 @@ class MoneyController(object):
 
     @printException
     @dbConnectAndClose
-    def get_all_from(self, table_name=''):
+    def get_latest_from(self, table):
+        # print 'colums from selected table: ', self.database.fieldnames
+        # sql = 'SELECT ' + self.database.getColumnsSQL() + ' FROM ' + table + ' ORDER BY id DESC LIMIT 100'
+        columns = self.database.getColumnsSQL()
+        self.logger.error(columns)
+        sql = 'SELECT {0} FROM {1} ORDER BY created DESC LIMIT 25'.format(columns, table)
+        self.database.query(sql)
+        return self.database.fetchall()
+
+    @printException
+    @dbConnectAndClose
+    def get_all_from(self, table=''):
         """
         sort by created
         """
         # value, created, category, description
-        columns = self.database.get_columns_without_id_sql(table_name)
-        sql = 'SELECT {0} FROM {1} ORDER BY created ASC'.format(columns, table_name)
-        return self.database.query(sql).fetchall()
+        columns = self.database.get_columns_without_id_sql(table)
+        sql = 'SELECT {0} FROM {1} ORDER BY created ASC'.format(columns, table)
+        self.database.query(sql)
+        return self.database.fetchall()
 
     @printException
     @dbConnectAndClose
-    def sum_values_for_categories_in(self, table_name, categories):
+    def sum_values_for_categories_in(self, table, categories):
         columns = 'sum(value)'
         args_str = tuple('?') * len(categories)
-        sql = 'SELECT {0} FROM {1} WHERE category in ({2})'.format(columns, table_name, ','.join(args_str))
-        return self.database.query(sql, categories).fetchone()[0]
+        sql = 'SELECT {0} FROM {1} WHERE category in ({2})'.format(columns, table, ','.join(args_str))
+        self.database.query(sql, categories)
+        return self.database.fetchone()[0]
 
     @printException
     @dbConnectAndClose
@@ -156,21 +134,84 @@ class MoneyController(object):
             # print path, 'exists'
             from_csv.populate(path, self.database)
 
+    def validate_input(self, ddate, value, category, description):
+        from utils.input_client import check_date, check_value
+        from utils.input_client import check_category, check_description
+
+        try:
+            ddate = check_date(value=ddate)
+            value = check_value(value=value)
+            category = check_category(value=category)
+            description = check_description(value=description)
+
+            args = [(ddate, value, category, description)]
+            return args
+        except AssertionError as e:
+            self.logger.error(e)
+        except ValueError as e:
+            self.logger.error(e)
+        except Exception as e:
+            self.logger.error(e)
+
+        return None
+
+
+class MyParser(argparse.ArgumentParser):
+    def __init__(self, prog):
+        super().__init__()
+
+    def error(self, message):
+        sys.stderr.write('error: %s\n' % message)
+        self.print_help()
+        sys.exit(2)
+
 
 if __name__ == '__main__':
-    import sys
-    logging.debug(sys.argv)
-    if len(sys.argv) > 1:
-        db = MoneyController(database_name='money.db', path=sys.argv[0])
-        logging.debug(db.database)
-        db.initialize_db(database_name=db.database_name)
-        logging.debug(db.database)
-        result = db.query(sys.argv[1])
-        if result:
-            for l in result:
-                print(l)
-        else:
-            logging.error('query returned nothing')
-    else:
-        logging.error('provide an sql string')
-        raise SystemExit('provide an sql string')
+    # parser = argparse.ArgumentParser(prog=os.path.split(__file__)[1])
+    parser = MyParser(prog=os.path.split(__file__)[1])
+    # gp = parser.add_mutually_exclusive_group(required=True)
+    parser.add_argument('-l', '--list', help='list e.g.categories', action="store_true")
+    parser.add_argument('-i', '--insert', help='format: 2018-03-28 -12.34 home some spare parts')
+    parser.add_argument('-t', '--table', help='db table to query', required=True)
+    parser.add_argument('-db', '--database', help='database to use, money.db?', required=True)
+    values = parser.parse_args()
+
+    # logging.debug(sys.argv)
+    # logging.debug(values.table)
+    # if len(sys.argv) > 1:
+    db = MoneyController(database_name=values.database, path=sys.argv[0])
+    # logging.debug('name: {0}'.format(db.database))
+    db.initialize_db(database_name=db.database_name)
+    if values.list:
+            result = db.get_all_categories(values.table)
+            if result:
+                print('output:', '======', sep='\n')
+                for category in result:
+                    print(category[0])
+            else:
+                logging.error('query returned nothing')
+    elif values.insert:
+        db.initialize_table(table=values.table)
+        # db.initialize_table(table=values.table)
+        ddate, value, category, *description = values.insert.split(' ')
+        args = db.validate_input(ddate=ddate, value=value, category=category, description=' '.join(description))
+        try:
+            db.insert_into_db(args=args)
+        except Exception as e:
+            db.logger.error(e)
+            raise SystemExit(e)
+    elif values.table:
+        try:
+            db.initialize_table(table=values.table)
+            # logging.debug(db.database)
+            # result = db.query(values.test_sql)
+            result = db.get_latest_from(table=values.table)
+            if result:
+                print('output:', '======', sep='\n')
+                for l in result:
+                    print(l)
+            else:
+                logging.error('query returned nothing')
+        except Exception as e:
+            logging.error(e)
+            raise SystemExit(e)

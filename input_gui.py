@@ -238,31 +238,16 @@ class SimpleAppTk(tk.Tk):
         self.description_str.set(description)
 
     def on_save_entry_click(self, event):
-        try:
-            # ddate = self.created_str.get()
-            # value = self.value_str.get()
-            # category = self.category_str.get()
-            # description = self.description_str.get()
-            if self.created_str.get():
-                ddate = check_date(self.created_str.get())
-            else:
-                ddate = check_date(self.created_months.cget('values')[self.created_months.current()])
-            # print ddate
-            value = check_value(self.value_str.get())
-            # print value
-            category = check_category(self.category_str.get())
-            # print repr(category)
-            description = check_description(self.description_str.get())
-            # print description
-            args = [(ddate, value, category, description)]
-            self.insert_into_db(args)
+        if self.created_str.get():
+            ddate = self.created_str.get()
+        else:
+            ddate = self.created_months.cget('values')[self.created_months.current()]
+        value = self.value_str.get()
+        category = self.category_str.get()
+        description = self.description_str.get()
 
-        except AssertionError as e:
-            self.controller.logger.error(e)
-        except ValueError as e:
-            self.controller.logger.error(e)
-        except Exception as e:
-            self.controller.logger.error('unhandled exception:' + str(e))
+        args = self.controller.validate_input(ddate=ddate, value=value, category=category, description=' '.join(description))
+        self.insert_into_db(args)
 
     def populate_tables_combobox(self):
             self.db_tables['values'] = self.controller.get_all_tables()
@@ -308,9 +293,11 @@ class SimpleAppTk(tk.Tk):
 
     @gui_show_entries
     def insert_into_db(self, args):
+        if not args:
+            self.controller.logger.error('no valid arguments given')
+            raise ValueError('no valid arguments given')
         self.last_entry.set(args)
         self.controller.insert_into_db(args=args)
-        # self.show_entries()
 
 
 def on_close(event):
