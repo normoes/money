@@ -6,10 +6,6 @@ name = "pypi"
 [dev-packages]
 
 [packages]
-flask = "*"
-docker = "*"
-"pysqlite3" = "*"
-"db-sqlite3" = "*"
 
 [requires]
 python_version = "3.6"

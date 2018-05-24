@@ -17,7 +17,7 @@ def populate(filename, database=None):
         g = database.insert_co(table='expenditures')
         try:
             logging.debug(g)
-            next(g)
+            next(g)  # initialize generator coroutine
             for row in reader:
                 logging.debug(row)
                 ddate = check_date(row['created'].strip())
