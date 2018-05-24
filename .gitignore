@@ -13,3 +13,5 @@ test/
 .cache/
 .local/
 .virtualenvs
+
+Pipfile.lock
