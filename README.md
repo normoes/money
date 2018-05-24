@@ -1,4 +1,7 @@
 # financial tool
+
+* updated to git version 2
+
 ## Synopsis
 
 A financial tool to keep track of personal expenditures.
